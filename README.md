@@ -2,6 +2,15 @@
 
 ![Homescreen screenshot](.github/home.png)
 
+
+## Fork info
+ - (glitchcrab/fix/non-root) remove chown from CMD to allow image to run as an unprivileged user 
+ - (pmjklemm/fix_sameTab) fix sameTab for prefix==l
+ - (fdarveau) categories
+
+Additionally, this fork includes a user concept to support hiding apps that the
+logged in user is not able to use, probably in an SSO environment.
+
 ## Description
 
 Flame is self-hosted startpage for your server. Its design is inspired (heavily) by [SUI](https://github.com/jeroenpardon/sui). Flame is very easy to setup and use. With built-in editors, it allows you to setup your very own application hub in no time - no file editing necessary.
