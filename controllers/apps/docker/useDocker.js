@@ -3,6 +3,15 @@ const axios = require('axios');
 const Logger = require('../../../utils/Logger');
 const logger = new Logger();
 const loadConfig = require('../../../utils/loadConfig');
+const Category = require('../../../models/Category');
+
+const dockerDefaultCategory = {
+  id: -2,
+  name: 'Docker',
+  type: 'apps',
+  isPinned: true,
+  orderId: 998,
+};
 
 const useDocker = async (apps) => {
   const {
@@ -47,6 +56,17 @@ const useDocker = async (apps) => {
 
     const dockerApps = [];
 
+    const categories = await Category.findAll({
+      where: {
+        type: 'apps'
+      },
+      order: [[orderType, 'ASC']]
+    });
+
+    if (!categories.find(category => category.id === dockerDefaultCategory.id)) {
+      categories.push(await Category.create(dockerDefaultCategory));
+    }
+
     for (const container of containers) {
       let labels = container.Labels;
 
@@ -88,19 +108,29 @@ const useDocker = async (apps) => {
         'flame.url' in labels &&
         /^app/.test(labels['flame.type'])
       ) {
-        for (let i = 0; i < labels['flame.name'].split(';').length; i++) {
-          const names = labels['flame.name'].split(';');
-          const urls = labels['flame.url'].split(';');
-          let icons = '';
+        const names = labels['flame.name'].split(';');
+        const urls = labels['flame.url'].split(';');
+        const categoriesLabels = labels['flame.category'] ? labels['flame.category'].split(';') : [];
+        const orders = labels['flame.order'] ? labels['flame.order'].split(';') : [];
+        const icons = labels['flame.icon'] ? labels['flame.icon'].split(';') : [];
 
-          if ('flame.icon' in labels) {
-            icons = labels['flame.icon'].split(';');
+        for (let i = 0; i < names.length; i++) {     
+          let category = categoriesLabels[i] ? categories.find(category => category.name.toUpperCase() === categoriesLabels[i].toUpperCase()) : dockerDefaultCategory;
+          if (!category) {
+            category = await createNewCategory(categoriesLabels[i]);
+            if (category) {
+              categories.push(category);
+            } else {
+              category = dockerDefaultCategory;
+            }
           }
 
           dockerApps.push({
             name: names[i] || names[0],
             url: urls[i] || urls[0],
             icon: icons[i] || 'docker',
+            categoryId: category.id,
+            orderId: orders[i] || 500,
           });
         }
       }
@@ -111,7 +141,6 @@ const useDocker = async (apps) => {
         await app.update({ isPinned: false });
       }
     }
-
     for (const item of dockerApps) {
       // If app already exists, update it
       if (apps.some((app) => app.name === item.name)) {
@@ -144,5 +173,15 @@ const useDocker = async (apps) => {
     }
   }
 };
+
+// TODO : Move somewhere else ?
+async function createNewCategory(newCategoryName) {
+  return await Category.create({
+    name: newCategoryName,
+    type: 'apps',
+    isPinned: true,
+    orderId: Number.MAX_SAFE_INTEGER //New category will always be last and can then be re-ordered manually by user
+  });
+}
 
 module.exports = useDocker;

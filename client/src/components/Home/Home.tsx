@@ -1,61 +1,44 @@
-import { useState, useEffect, Fragment } from 'react';
-import { Link } from 'react-router-dom';
-
-// Redux
+import { Fragment, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { State } from '../../store/reducers';
+import { Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
+
+import { Category } from '../../interfaces';
 import { actionCreators } from '../../store';
-
-// Typescript
-import { App, Category } from '../../interfaces';
-
-// UI
-import { Icon, Container, SectionHeadline, Spinner, Message } from '../UI';
-
-// CSS
-import classes from './Home.module.css';
-
-// Components
+import { State } from '../../store/reducers';
+import { escapeRegex } from '../../utility';
 import { AppGrid } from '../Apps/AppGrid/AppGrid';
 import { BookmarkGrid } from '../Bookmarks/BookmarkGrid/BookmarkGrid';
 import { SearchBar } from '../SearchBar/SearchBar';
+import { Icon, Message, SectionHeadline, Spinner } from '../UI';
+import { Container } from '../UI/Layout/Layout';
 import { Header } from './Header/Header';
-
-// Utils
-import { escapeRegex } from '../../utility';
+import classes from './Home.module.css';
 
 export const Home = (): JSX.Element => {
   const {
-    apps: { apps, loading: appsLoading },
-    bookmarks: { categories, loading: bookmarksLoading },
+    apps: { categories: appCategories, loading: appsLoading },
+    bookmarks: { categories: bookmarkCategories, loading: bookmarksLoading },
     config: { config },
     auth: { isAuthenticated },
   } = useSelector((state: State) => state);
 
   const dispatch = useDispatch();
-  const { getApps, getCategories } = bindActionCreators(
+  const { getCategories } = bindActionCreators(
     actionCreators,
     dispatch
   );
 
   // Local search query
   const [localSearch, setLocalSearch] = useState<null | string>(null);
-  const [appSearchResult, setAppSearchResult] = useState<null | App[]>(null);
+  const [appSearchResult, setAppSearchResult] = useState<null | Category[]>(null);
   const [bookmarkSearchResult, setBookmarkSearchResult] = useState<
     null | Category[]
   >(null);
 
-  // Load applications
+  // Load apps and bookmarks
   useEffect(() => {
-    if (!apps.length) {
-      getApps();
-    }
-  }, []);
-
-  // Load bookmark categories
-  useEffect(() => {
-    if (!categories.length) {
+    if (!appCategories.length && !bookmarkCategories.length) {
       getCategories();
     }
   }, []);
@@ -64,25 +47,36 @@ export const Home = (): JSX.Element => {
     if (localSearch) {
       // Search through apps
       setAppSearchResult([
-        ...apps.filter(({ name, description }) =>
-          new RegExp(escapeRegex(localSearch), 'i').test(
-            `${name} ${description}`
-          )
+        ...appCategories.filter(({ name }) =>
+          new RegExp(escapeRegex(localSearch), 'i').test(name)
         ),
       ]);
 
-      // Search through bookmarks
-      const category = { ...categories[0] };
+      // Search through apps
+      const appCategory = { ...appCategories[0] };
 
-      category.name = 'Search Results';
-      category.bookmarks = categories
-        .map(({ bookmarks }) => bookmarks)
+      appCategory.name = 'Search Results';
+      appCategory.apps = appCategories
+        .map(({ apps }) => apps)
         .flat()
-        .filter(({ name }) =>
-          new RegExp(escapeRegex(localSearch), 'i').test(name)
+        .filter(({ name, url, description }) =>
+          new RegExp(escapeRegex(localSearch), 'i').test(`${name} ${url} ${description}`)
         );
 
-      setBookmarkSearchResult([category]);
+        setAppSearchResult([appCategory]);
+
+      // Search through bookmarks
+      const bookmarkCategory = { ...bookmarkCategories[0] };
+
+      bookmarkCategory.name = 'Search Results';
+      bookmarkCategory.bookmarks = bookmarkCategories
+        .map(({ bookmarks }) => bookmarks)
+        .flat()
+        .filter(({ name, url }) =>
+          new RegExp(escapeRegex(localSearch), 'i').test(`${name} ${url}`)
+        );
+
+      setBookmarkSearchResult([bookmarkCategory]);
     } else {
       setAppSearchResult(null);
       setBookmarkSearchResult(null);
@@ -104,8 +98,8 @@ export const Home = (): JSX.Element => {
       <Header />
 
       {!isAuthenticated &&
-      !apps.some((a) => a.isPinned) &&
-      !categories.some((c) => c.isPinned) ? (
+      !appCategories.some((a) => a.isPinned) &&
+      !bookmarkCategories.some((c) => c.isPinned) ? (
         <Message>
           Welcome to Flame! Go to <Link to="/settings/app">/settings</Link>,
           login and start customizing your new homepage
@@ -114,20 +108,21 @@ export const Home = (): JSX.Element => {
         <></>
       )}
 
-      {!config.hideApps && (isAuthenticated || apps.some((a) => a.isPinned)) ? (
+      {!config.hideApps && (isAuthenticated || appCategories.some((a) => a.isPinned)) ? (
         <Fragment>
           <SectionHeadline title="Applications" link="/applications" />
           {appsLoading ? (
             <Spinner />
           ) : (
             <AppGrid
-              apps={
+              categories={
                 !appSearchResult
-                  ? apps.filter(({ isPinned }) => isPinned)
+                  ? appCategories.filter(({ isPinned }) => isPinned)
                   : appSearchResult
               }
-              totalApps={apps.length}
+              totalCategories={appCategories.length}
               searching={!!localSearch}
+              fromHomepage={true}
             />
           )}
           <div className={classes.HomeSpace}></div>
@@ -136,8 +131,7 @@ export const Home = (): JSX.Element => {
         <></>
       )}
 
-      {!config.hideCategories &&
-      (isAuthenticated || categories.some((c) => c.isPinned)) ? (
+      {!config.hideBookmarks && (isAuthenticated || bookmarkCategories.some((c) => c.isPinned)) ? (
         <Fragment>
           <SectionHeadline title="Bookmarks" link="/bookmarks" />
           {bookmarksLoading ? (
@@ -146,12 +140,10 @@ export const Home = (): JSX.Element => {
             <BookmarkGrid
               categories={
                 !bookmarkSearchResult
-                  ? categories.filter(
-                      ({ isPinned, bookmarks }) => isPinned && bookmarks.length
-                    )
+                  ? bookmarkCategories.filter(({ isPinned }) => isPinned)
                   : bookmarkSearchResult
               }
-              totalCategories={categories.length}
+              totalCategories={bookmarkCategories.length}
               searching={!!localSearch}
               fromHomepage={true}
             />

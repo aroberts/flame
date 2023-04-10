@@ -1,55 +1,50 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-
-// Redux
 import { useDispatch, useSelector } from 'react-redux';
-
-// Typescript
-import { App } from '../../interfaces';
-
-// CSS
-import classes from './Apps.module.css';
-
-// UI
-import { Headline, Spinner, ActionButton, Modal, Container } from '../UI';
-
-// Subcomponents
-import { AppGrid } from './AppGrid/AppGrid';
-import { AppForm } from './AppForm/AppForm';
-import { AppTable } from './AppTable/AppTable';
-
-// Utils
-import { State } from '../../store/reducers';
+import { Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
+
+import { App, Category } from '../../interfaces';
 import { actionCreators } from '../../store';
+import { State } from '../../store/reducers';
+import { ActionButton, Container, Headline, Message, Modal, Spinner } from '../UI';
+import { AppGrid } from './AppGrid/AppGrid';
+import classes from './Apps.module.css';
+import { Form } from './Form/Form';
+import { Table } from './Table/Table';
 
 interface Props {
   searching: boolean;
 }
 
+export enum ContentType {
+  category,
+  app,
+}
+
 export const Apps = (props: Props): JSX.Element => {
   // Get Redux state
   const {
-    apps: { apps, loading },
+    apps: { loading, categories, categoryInEdit },
     auth: { isAuthenticated },
   } = useSelector((state: State) => state);
 
   // Get Redux action creators
   const dispatch = useDispatch();
-  const { getApps, setEditApp } = bindActionCreators(actionCreators, dispatch);
-
-  // Load apps if array is empty
-  useEffect(() => {
-    if (!apps.length) {
-      getApps();
-    }
-  }, []);
+  const { setEditCategory, setEditApp } =
+    bindActionCreators(actionCreators, dispatch);
 
   // Form
   const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [showTable, setShowTable] = useState(false);
+  const [formContentType, setFormContentType] = useState(ContentType.category);
+  const [isInUpdate, setIsInUpdate] = useState(false);
 
-  // Observe if user is authenticated -> set default view if not
+  // Table
+  const [showTable, setShowTable] = useState(false);
+  const [tableContentType, setTableContentType] = useState(
+    ContentType.category
+  );
+
+  // Observe if user is authenticated -> set default view (grid) if not
   useEffect(() => {
     if (!isAuthenticated) {
       setShowTable(false);
@@ -57,54 +52,121 @@ export const Apps = (props: Props): JSX.Element => {
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    if (categoryInEdit && !modalIsOpen) {
+      setTableContentType(ContentType.app);
+      setShowTable(true);
+    }
+  }, [categoryInEdit]);
+
+  useEffect(() => {
+    setShowTable(false);
+    setEditCategory(null);
+  }, []);
+
   // Form actions
   const toggleModal = (): void => {
     setModalIsOpen(!modalIsOpen);
   };
 
-  const toggleEdit = (): void => {
-    setShowTable(!showTable);
+  const openFormForAdding = (contentType: ContentType) => {
+    setFormContentType(contentType);
+    setIsInUpdate(false);
+    toggleModal();
   };
 
-  const openFormForUpdating = (app: App): void => {
-    setEditApp(app);
-    setModalIsOpen(true);
+  const openFormForUpdating = (data: Category | App): void => {
+    setIsInUpdate(true);
+
+    const instanceOfCategory = (object: any): object is Category => {
+      return 'apps' in object;
+    };
+
+    if (instanceOfCategory(data)) {
+      setFormContentType(ContentType.category);
+      setEditCategory(data);
+    } else {
+      setFormContentType(ContentType.app);
+      setEditApp(data);
+    }
+
+    toggleModal();
+  };
+
+  // Table actions
+  const showTableForEditing = (contentType: ContentType) => {
+    // We're in the edit mode and the same button was clicked - go back to list
+    if (showTable && contentType === tableContentType) {
+      setEditCategory(null);
+      setShowTable(false);
+    } else {
+      setShowTable(true);
+      setTableContentType(contentType);
+    }
+  };
+
+  const finishEditing = () => {
+    setShowTable(false);
+    setEditCategory(null);
   };
 
   return (
     <Container>
-      <Modal isOpen={modalIsOpen} setIsOpen={setModalIsOpen}>
-        <AppForm modalHandler={toggleModal} />
+      <Modal isOpen={modalIsOpen} setIsOpen={toggleModal}>
+        <Form
+          modalHandler={toggleModal}
+          contentType={formContentType}
+          inUpdate={isInUpdate}
+        />
       </Modal>
 
-      <Headline
-        title="All Applications"
-        subtitle={<Link to="/">Go back</Link>}
-      />
+      <Headline title="All Apps" subtitle={<Link to="/">Go back</Link>} />
 
       {isAuthenticated && (
         <div className={classes.ActionsContainer}>
           <ActionButton
-            name="Add"
+            name="Add Category"
             icon="mdiPlusBox"
-            handler={() => {
-              setEditApp(null);
-              toggleModal();
-            }}
+            handler={() => openFormForAdding(ContentType.category)}
           />
-          <ActionButton name="Edit" icon="mdiPencil" handler={toggleEdit} />
+          <ActionButton
+            name="Add App"
+            icon="mdiPlusBox"
+            handler={() => openFormForAdding(ContentType.app)}
+          />
+          <ActionButton
+            name="Edit Categories"
+            icon="mdiPencil"
+            handler={() => showTableForEditing(ContentType.category)}
+          />
+          {showTable && tableContentType === ContentType.app && (
+            <ActionButton
+              name="Finish Editing"
+              icon="mdiPencil"
+              handler={finishEditing}
+            />
+          )}
         </div>
       )}
 
-      <div className={classes.Apps}>
-        {loading ? (
-          <Spinner />
-        ) : !showTable ? (
-          <AppGrid apps={apps} searching={props.searching} />
-        ) : (
-          <AppTable openFormForUpdating={openFormForUpdating} />
-        )}
-      </div>
+      {categories.length && isAuthenticated && !showTable ? (
+        <Message isPrimary={false}>
+          Click on category name to edit its apps
+        </Message>
+      ) : (
+        <></>
+      )}
+
+      {loading ? (
+        <Spinner />
+      ) : !showTable ? (
+        <AppGrid categories={categories} searching={props.searching} />
+      ) : (
+        <Table
+          contentType={tableContentType}
+          openFormForUpdating={openFormForUpdating}
+        />
+      )}
     </Container>
   );
 };

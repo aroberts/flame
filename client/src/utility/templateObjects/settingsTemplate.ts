@@ -1,16 +1,11 @@
-import {
-  DockerSettingsForm,
-  UISettingsForm,
-  GeneralForm,
-  ThemeSettingsForm,
-  WeatherForm,
-} from '../../interfaces';
+import { DockerSettingsForm, GeneralForm, ThemeSettingsForm, UISettingsForm, WeatherForm } from '../../interfaces';
 
 export const uiSettingsTemplate: UISettingsForm = {
   customTitle: document.title,
   hideHeader: false,
   hideApps: false,
-  hideCategories: false,
+  hideBookmarks: false,
+  hideEmptyCategories: true,
   useAmericanDate: false,
   greetingsSchema: 'Good evening!;Good afternoon!;Good morning!;Good night!',
   daySchema: 'Sunday;Monday;Tuesday;Wednesday;Thursday;Friday;Saturday',
@@ -35,6 +30,7 @@ export const generalSettingsTemplate: GeneralForm = {
   defaultSearchProvider: 'l',
   secondarySearchProvider: 'd',
   pinAppsByDefault: true,
+  pinBookmarksByDefault: true,
   pinCategoriesByDefault: true,
   useOrdering: 'createdAt',
   appsSameTab: false,

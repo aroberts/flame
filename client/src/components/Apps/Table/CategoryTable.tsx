@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
 
-import { Bookmark, Category } from '../../../interfaces';
+import { App, Category } from '../../../interfaces';
 import { actionCreators } from '../../../store';
 import { State } from '../../../store/reducers';
 import { TableActions } from '../../Actions/TableActions';
@@ -14,13 +14,13 @@ import { Message, Table } from '../../UI';
 // Typescript
 // UI
 interface Props {
-  openFormForUpdating: (data: Category | Bookmark) => void;
+  openFormForUpdating: (data: Category | App) => void;
 }
 
 export const CategoryTable = ({ openFormForUpdating }: Props): JSX.Element => {
   const {
     config: { config },
-    bookmarks: { categories },
+    apps: { categories },
   } = useSelector((state: State) => state);
 
   const dispatch = useDispatch();
@@ -64,7 +64,7 @@ export const CategoryTable = ({ openFormForUpdating }: Props): JSX.Element => {
   // Action handlers
   const deleteCategoryHandler = (id: number, name: string) => {
     const proceed = window.confirm(
-      `Are you sure you want to delete ${name}? It will delete ALL assigned bookmarks`
+      `Are you sure you want to delete ${name}? It will delete ALL assigned apps`
     );
 
     if (proceed) {

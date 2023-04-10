@@ -1,20 +1,20 @@
-import { ActionType } from '../action-types';
-import { Action } from '../actions/index';
 import { App } from '../../interfaces';
 import { sortData } from '../../utility';
+import { ActionType } from '../action-types';
+import { Action } from '../actions';
+import { categoriesReducer, CategoriesState } from './category';
 
-interface AppsState {
-  loading: boolean;
-  apps: App[];
-  errors: string | undefined;
-  appInUpdate: App | null;
+interface AppsState extends CategoriesState {
+  appInEdit: App | null;
 }
 
 const initialState: AppsState = {
   loading: true,
-  apps: [],
   errors: undefined,
-  appInUpdate: null,
+  categories: [],
+  type: 'apps',
+  categoryInEdit: null,
+  appInEdit: null,
 };
 
 export const appsReducer = (
@@ -22,88 +22,129 @@ export const appsReducer = (
   action: Action
 ): AppsState => {
   switch (action.type) {
-    case ActionType.getApps: {
-      return {
-        ...state,
-        loading: true,
-        errors: undefined,
-      };
-    }
-
-    case ActionType.getAppsSuccess: {
-      return {
-        ...state,
-        loading: false,
-        apps: action.payload || [],
-      };
-    }
-
-    case ActionType.pinApp: {
-      const appIdx = state.apps.findIndex(
-        (app) => app.id === action.payload.id
+    
+    case ActionType.addApp: {
+      const categoryIdx = state.categories.findIndex(
+        (category) => category.id === action.payload.categoryId
       );
 
-      return {
-        ...state,
-        apps: [
-          ...state.apps.slice(0, appIdx),
-          action.payload,
-          ...state.apps.slice(appIdx + 1),
-        ],
+      const targetCategory = {
+        ...state.categories[categoryIdx],
+        apps: [...state.categories[categoryIdx].apps, action.payload],
       };
-    }
 
-    case ActionType.addAppSuccess: {
       return {
         ...state,
-        apps: [...state.apps, action.payload],
+        categories: [
+          ...state.categories.slice(0, categoryIdx),
+          targetCategory,
+          ...state.categories.slice(categoryIdx + 1),
+        ],
+        categoryInEdit: targetCategory,
       };
     }
 
     case ActionType.deleteApp: {
+      const categoryIdx = state.categories.findIndex(
+        (category) => category.id === action.payload.categoryId
+      );
+
+      const targetCategory = {
+        ...state.categories[categoryIdx],
+        apps: state.categories[categoryIdx].apps.filter(
+          (app) => app.id !== action.payload.appId
+        ),
+      };
+
       return {
         ...state,
-        apps: [...state.apps].filter((app) => app.id !== action.payload),
+        categories: [
+          ...state.categories.slice(0, categoryIdx),
+          targetCategory,
+          ...state.categories.slice(categoryIdx + 1),
+        ],
+        categoryInEdit: targetCategory,
       };
     }
 
     case ActionType.updateApp: {
-      const appIdx = state.apps.findIndex(
+      const categoryIdx = state.categories.findIndex(
+        (category) => category.id === action.payload.categoryId
+      );
+
+      const appIdx = state.categories[categoryIdx].apps.findIndex(
         (app) => app.id === action.payload.id
       );
 
-      return {
-        ...state,
+      const targetCategory = {
+        ...state.categories[categoryIdx],
         apps: [
-          ...state.apps.slice(0, appIdx),
+          ...state.categories[categoryIdx].apps.slice(0, appIdx),
           action.payload,
-          ...state.apps.slice(appIdx + 1),
+          ...state.categories[categoryIdx].apps.slice(appIdx + 1),
         ],
       };
-    }
 
-    case ActionType.reorderApps: {
       return {
         ...state,
-        apps: action.payload,
-      };
-    }
-
-    case ActionType.sortApps: {
-      return {
-        ...state,
-        apps: sortData<App>(state.apps, action.payload),
+        categories: [
+          ...state.categories.slice(0, categoryIdx),
+          targetCategory,
+          ...state.categories.slice(categoryIdx + 1),
+        ],
+        categoryInEdit: targetCategory,
       };
     }
 
     case ActionType.setEditApp: {
       return {
         ...state,
-        appInUpdate: action.payload,
+        appInEdit: action.payload,
+      };
+    }
+
+    case ActionType.reorderApps: {
+      const categoryIdx = state.categories.findIndex(
+        (category) => category.id === action.payload.categoryId
+      );
+
+      return {
+        ...state,
+        categories: [
+          ...state.categories.slice(0, categoryIdx),
+          {
+            ...state.categories[categoryIdx],
+            apps: action.payload.apps,
+          },
+          ...state.categories.slice(categoryIdx + 1),
+        ],
+      };
+    }
+
+    case ActionType.sortApps: {
+      const categoryIdx = state.categories.findIndex(
+        (category) => category.id === action.payload.categoryId
+      );
+
+      const sortedApps = sortData<App>(
+        state.categories[categoryIdx].apps,
+        action.payload.orderType
+      );
+
+      return {
+        ...state,
+        categories: [
+          ...state.categories.slice(0, categoryIdx),
+          {
+            ...state.categories[categoryIdx],
+            apps: sortedApps,
+          },
+          ...state.categories.slice(categoryIdx + 1),
+        ],
       };
     }
 
     default:
-      return state;
+      return categoriesReducer(state, action);
   }
 };

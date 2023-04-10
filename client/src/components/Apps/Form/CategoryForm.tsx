@@ -4,7 +4,7 @@ import { bindActionCreators } from 'redux';
 
 import { Category, NewCategory } from '../../../interfaces';
 import { actionCreators } from '../../../store';
-import { inputHandler, newBookmarkCategoryTemplate } from '../../../utility';
+import { inputHandler, newAppCategoryTemplate } from '../../../utility';
 import { Button, InputGroup, ModalForm } from '../../UI';
 
 // Redux
@@ -26,14 +26,14 @@ export const CategoryForm = ({
     dispatch
   );
 
-  const [formData, setFormData] = useState<NewCategory>(newBookmarkCategoryTemplate);
+  const [formData, setFormData] = useState<NewCategory>(newAppCategoryTemplate);
 
   // Load category data if provided for editing
   useEffect(() => {
     if (category) {
       setFormData({ ...category });
     } else {
-      setFormData(newBookmarkCategoryTemplate);
+      setFormData(newAppCategoryTemplate);
     }
   }, [category]);
 
@@ -60,7 +60,7 @@ export const CategoryForm = ({
       modalHandler();
     }
 
-    setFormData(newBookmarkCategoryTemplate);
+    setFormData(newAppCategoryTemplate);
   };
 
   return (

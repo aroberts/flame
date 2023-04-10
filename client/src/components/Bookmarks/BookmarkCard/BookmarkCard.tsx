@@ -1,18 +1,13 @@
 import { Fragment } from 'react';
-
-// Redux
 import { useDispatch, useSelector } from 'react-redux';
-import { State } from '../../../store/reducers';
 import { bindActionCreators } from 'redux';
-import { actionCreators } from '../../../store';
 
-// Typescript
 import { Bookmark, Category } from '../../../interfaces';
-
-// Other
-import classes from './BookmarkCard.module.css';
-import { Icon } from '../../UI';
+import { actionCreators } from '../../../store';
+import { State } from '../../../store/reducers';
 import { iconParser, isImage, isSvg, isUrl, urlParser } from '../../../utility';
+import { Icon } from '../../UI';
+import classes from './BookmarkCard.module.css';
 
 interface Props {
   category: Category;

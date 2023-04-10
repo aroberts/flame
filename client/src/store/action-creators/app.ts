@@ -1,39 +1,18 @@
-import { ActionType } from '../action-types';
+import axios from 'axios';
 import { Dispatch } from 'redux';
+
 import { ApiResponse, App, Config, NewApp } from '../../interfaces';
+import { applyAuth } from '../../utility';
+import { ActionType } from '../action-types';
 import {
   AddAppAction,
   DeleteAppAction,
-  GetAppsAction,
   PinAppAction,
   ReorderAppsAction,
   SetEditAppAction,
   SortAppsAction,
   UpdateAppAction,
 } from '../actions/app';
-import axios from 'axios';
-import { applyAuth } from '../../utility';
-
-export const getApps =
-  () => async (dispatch: Dispatch<GetAppsAction<undefined | App[]>>) => {
-    dispatch({
-      type: ActionType.getApps,
-      payload: undefined,
-    });
-
-    try {
-      const res = await axios.get<ApiResponse<App[]>>('/api/apps', {
-        headers: applyAuth(),
-      });
-
-      dispatch({
-        type: ActionType.getAppsSuccess,
-        payload: res.data.data,
-      });
-    } catch (err) {
-      console.log(err);
-    }
-  };
 
 export const pinApp =
   (app: App) => async (dispatch: Dispatch<PinAppAction>) => {
@@ -70,37 +49,42 @@ export const pinApp =
     }
   };
 
+  
 export const addApp =
-  (formData: NewApp | FormData) => async (dispatch: Dispatch<AddAppAction>) => {
+  (formData: NewApp | FormData) =>
+  async (dispatch: Dispatch<AddAppAction>) => {
     try {
-      const res = await axios.post<ApiResponse<App>>('/api/apps', formData, {
-        headers: applyAuth(),
-      });
+      const res = await axios.post<ApiResponse<App>>(
+        '/api/apps',
+        formData,
+        { headers: applyAuth() }
+      );
 
       dispatch<any>({
         type: ActionType.createNotification,
         payload: {
           title: 'Success',
-          message: `App added`,
+          message: `App created`,
         },
       });
 
-      await dispatch({
-        type: ActionType.addAppSuccess,
+      dispatch({
+        type: ActionType.addApp,
         payload: res.data.data,
       });
 
-      // Sort apps
-      dispatch<any>(sortApps());
+      dispatch<any>(sortApps(res.data.data.categoryId));
     } catch (err) {
       console.log(err);
     }
   };
 
+
 export const deleteApp =
-  (id: number) => async (dispatch: Dispatch<DeleteAppAction>) => {
+  (appId: number, categoryId: number) =>
+  async (dispatch: Dispatch<DeleteAppAction>) => {
     try {
-      await axios.delete<ApiResponse<{}>>(`/api/apps/${id}`, {
+      await axios.delete<ApiResponse<{}>>(`/api/apps/${appId}`, {
         headers: applyAuth(),
       });
 
@@ -114,7 +98,10 @@ export const deleteApp =
 
       dispatch({
         type: ActionType.deleteApp,
-        payload: id,
+        payload: {
+          appId,
+          categoryId,
+        },
       });
     } catch (err) {
       console.log(err);
@@ -122,15 +109,24 @@ export const deleteApp =
   };
 
 export const updateApp =
-  (id: number, formData: NewApp | FormData) =>
-  async (dispatch: Dispatch<UpdateAppAction>) => {
+  (
+    appId: number,
+    formData: NewApp | FormData,
+    category: {
+      prev: number;
+      curr: number;
+    }
+  ) =>
+  async (
+    dispatch: Dispatch<
+      DeleteAppAction | AddAppAction | UpdateAppAction
+    >
+  ) => {
     try {
       const res = await axios.put<ApiResponse<App>>(
-        `/api/apps/${id}`,
+        `/api/apps/${appId}`,
         formData,
-        {
-          headers: applyAuth(),
-        }
+        { headers: applyAuth() }
       );
 
       dispatch<any>({
@@ -141,20 +137,50 @@ export const updateApp =
         },
       });
 
-      await dispatch({
-        type: ActionType.updateApp,
-        payload: res.data.data,
-      });
+      // Check if category was changed
+      const categoryWasChanged = category.curr !== category.prev;
 
-      // Sort apps
-      dispatch<any>(sortApps());
+      if (categoryWasChanged) {
+        // Delete app from old category
+        dispatch({
+          type: ActionType.deleteApp,
+          payload: {
+            appId,
+            categoryId: category.prev,
+          },
+        });
+
+        // Add app to the new category
+        dispatch({
+          type: ActionType.addApp,
+          payload: res.data.data,
+        });
+      } else {
+        // Else update only name/url/icon
+        dispatch({
+          type: ActionType.updateApp,
+          payload: res.data.data,
+        });
+      }
+
+      dispatch<any>(sortApps(res.data.data.categoryId));
     } catch (err) {
       console.log(err);
     }
   };
 
+export const setEditApp =
+  (app: App | null) =>
+  (dispatch: Dispatch<SetEditAppAction>) => {
+    dispatch({
+      type: ActionType.setEditApp,
+      payload: app,
+    });
+  };
+
 export const reorderApps =
-  (apps: App[]) => async (dispatch: Dispatch<ReorderAppsAction>) => {
+  (apps: App[], categoryId: number) =>
+  async (dispatch: Dispatch<ReorderAppsAction>) => {
     interface ReorderQuery {
       apps: {
         id: number;
@@ -172,36 +198,34 @@ export const reorderApps =
         })
       );
 
-      await axios.put<ApiResponse<{}>>('/api/apps/0/reorder', updateQuery, {
-        headers: applyAuth(),
-      });
+      await axios.put<ApiResponse<{}>>(
+        '/api/apps/0/reorder',
+        updateQuery,
+        { headers: applyAuth() }
+      );
 
       dispatch({
         type: ActionType.reorderApps,
-        payload: apps,
+        payload: { apps, categoryId },
       });
     } catch (err) {
       console.log(err);
     }
   };
 
-export const sortApps = () => async (dispatch: Dispatch<SortAppsAction>) => {
-  try {
-    const res = await axios.get<ApiResponse<Config>>('/api/config');
+export const sortApps =
+  (categoryId: number) => async (dispatch: Dispatch<SortAppsAction>) => {
+    try {
+      const res = await axios.get<ApiResponse<Config>>('/api/config');
 
-    dispatch({
-      type: ActionType.sortApps,
-      payload: res.data.data.useOrdering,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-export const setEditApp =
-  (app: App | null) => (dispatch: Dispatch<SetEditAppAction>) => {
-    dispatch({
-      type: ActionType.setEditApp,
-      payload: app,
-    });
+      dispatch({
+        type: ActionType.sortApps,
+        payload: {
+          orderType: res.data.data.useOrdering,
+          categoryId,
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    }
   };

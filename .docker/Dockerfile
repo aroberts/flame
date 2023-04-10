@@ -1,16 +1,21 @@
 FROM node:16 as builder
 
+# Get package.json and install modules
+COPY package*.json /tmp/package.json
+RUN cd /tmp && npm install --production
+RUN mkdir -p /app && cp -a /tmp/node_modules /app/
+
+# Get package.json and install modules
+COPY client/package*.json /tmp_client/package.json
+RUN cd /tmp_client && npm install --production
+RUN mkdir -p /app/client && cp -a /tmp_client/node_modules /app/client/
+
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm install --production
-
-COPY . .
+COPY . /app
 
 RUN mkdir -p ./public ./data \
     && cd ./client \
-    && npm install --production \
     && npm run build \
     && cd .. \
     && mv ./client/build/* ./public \

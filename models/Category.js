@@ -8,6 +8,10 @@ const Category = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     isPinned: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

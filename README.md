@@ -2,7 +2,6 @@
 
 ![Homescreen screenshot](.github/home.png)
 
-
 ## Fork info
  - (glitchcrab/fix/non-root) remove chown from CMD to allow image to run as an unprivileged user 
  - (pmjklemm/fix_sameTab) fix sameTab for prefix==l
@@ -10,6 +9,11 @@
 
 Additionally, this fork includes a user concept to support hiding apps that the
 logged in user is not able to use, probably in an SSO environment.
+
+## Important update 2021-12-10 [fdarveau]
+Due to prolonged inactivity on my end and multiple conflicting changes with the original repository, I applied app categories from scratch using the original repository's code. **This means there are some breaking changes, the biggest one being the database**. The database schemas of the old version and the new one are incompatible. You will need to delete/rename the previous database file so Flame can re-create it. You can then add your apps/bookmarks manually.
+
+If you encounter any problem, you can open an Issue in this fork so I can look into it.
 
 ## Description
 
@@ -28,23 +32,21 @@ Flame is self-hosted startpage for your server. Its design is inspired (heavily)
 
 ### With Docker (recommended)
 
-[Docker Hub link](https://hub.docker.com/r/pawelmalak/flame)
-
 ```sh
-docker pull pawelmalak/flame
+docker pull ghcr.io/aroberts/flame:latest
 
 # for ARM architecture (e.g. RaspberryPi)
-docker pull pawelmalak/flame:multiarch
+docker pull ghcr.io/aroberts/flame:latest:multiarch
 
 # installing specific version
-docker pull pawelmalak/flame:2.0.0
+docker pull ghcr.io/aroberts/flame:2021-12-12
 ```
 
 #### Deployment
 
 ```sh
 # run container
-docker run -p 5005:5005 -v /path/to/data:/app/data -e PASSWORD=flame_password pawelmalak/flame
+docker run -p 5005:5005 -v /path/to/data:/app/data -e PASSWORD=flame_password ghcr.io/aroberts/flame:latest
 ```
 
 #### Building images
@@ -68,7 +70,7 @@ version: '3.6'
 
 services:
   flame:
-    image: pawelmalak/flame
+    image: ghcr.io/aroberts/flame:latest
     container_name: flame
     volumes:
       - /path/to/host/data:/app/data
@@ -182,8 +184,9 @@ labels:
   - flame.type=application # "app" works too
   - flame.name=My container
   - flame.url=https://example.com
-  - flame.icon=icon-name # optional, default is "docker"
-# - flame.icon=custom to make changes in app. ie: custom icon upload
+  - flame.category=My category # Optional, default is "Docker"
+  - flame.icon=icon-name # Optional, default is "docker"
+  - flame.order=1 # Optional, default is 500; lower number is first in the list
 ```
 
 > "Use Docker API" option must be enabled for this to work. You can find it in Settings > Docker
@@ -231,7 +234,9 @@ metadata:
   - flame.pawelmalak/type=application # "app" works too
   - flame.pawelmalak/name=My container
   - flame.pawelmalak/url=https://example.com
-  - flame.pawelmalak/icon=icon-name # optional, default is "kubernetes"
+  - flame.pawelmalak/category=My category # Optional, default is "Kubernetes"
+  - flame.pawelmalak/icon=icon-name # Optional, default is "kubernetes"
+  - flame.pawelmalak/order=1 # Optional, default is 500; lower number is first in the list
 ```
 
 > "Use Kubernetes Ingress API" option must be enabled for this to work. You can find it in Settings > Docker
@@ -254,4 +259,6 @@ python3 bookmarks_importer.py --bookmarks <path to bookmarks.html> --data <path 
 
 ### Custom CSS and themes
 
-See project wiki for [Custom CSS](https://github.com/pawelmalak/flame/wiki/Custom-CSS) and [Custom theme with CSS](https://github.com/pawelmalak/flame/wiki/Custom-theme-with-CSS).
+> This is an experimental feature. Its behaviour might change in the future.
+>
+> Follow instructions from wiki: [Custom CSS](https://github.com/pawelmalak/flame/wiki/Custom-CSS)

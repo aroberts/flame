@@ -7,6 +7,7 @@ export interface Config {
   isCelsius: boolean;
   customTitle: string;
   pinAppsByDefault: boolean;
+  pinBookmarksByDefault: boolean;
   pinCategoriesByDefault: boolean;
   hideHeader: boolean;
   useOrdering: string;
@@ -14,7 +15,8 @@ export interface Config {
   bookmarksSameTab: boolean;
   searchSameTab: boolean;
   hideApps: boolean;
-  hideCategories: boolean;
+  hideBookmarks: boolean;
+  hideEmptyCategories: boolean;
   hideSearch: boolean;
   defaultSearchProvider: string;
   secondarySearchProvider: string;

@@ -10,5 +10,5 @@ interface Props {
 export const Message = ({ children, isPrimary = true }: Props): JSX.Element => {
   const style = isPrimary ? classes.message : classes.messageCenter;
 
-  return <p className={style}>{children}</p>;
+  return <div className={style}>{children}</div>;
 };

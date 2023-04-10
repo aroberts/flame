@@ -1,6 +1,7 @@
 const asyncWrapper = require('../../middleware/asyncWrapper');
 const ErrorResponse = require('../../utils/ErrorResponse');
 const Category = require('../../models/Category');
+const App = require('../../models/App');
 const Bookmark = require('../../models/Bookmark');
 
 // @desc      Delete category
@@ -10,6 +11,10 @@ const deleteCategory = asyncWrapper(async (req, res, next) => {
   const category = await Category.findOne({
     where: { id: req.params.id },
     include: [
+      {
+        model: App,
+        as: 'apps',
+      },
       {
         model: Bookmark,
         as: 'bookmarks',
@@ -25,6 +30,12 @@ const deleteCategory = asyncWrapper(async (req, res, next) => {
       )
     );
   }
+
+  category.apps.forEach(async (app) => {
+    await App.destroy({
+      where: { id: app.id },
+    });
+  });
 
   category.bookmarks.forEach(async (bookmark) => {
     await Bookmark.destroy({

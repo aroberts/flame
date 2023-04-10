@@ -13,6 +13,7 @@ export interface GeneralForm {
   secondarySearchProvider: string;
   searchSameTab: boolean;
   pinAppsByDefault: boolean;
+  pinBookmarksByDefault: boolean;
   pinCategoriesByDefault: boolean;
   useOrdering: string;
   appsSameTab: boolean;
@@ -23,7 +24,8 @@ export interface UISettingsForm {
   customTitle: string;
   hideHeader: boolean;
   hideApps: boolean;
-  hideCategories: boolean;
+  hideBookmarks: boolean;
+  hideEmptyCategories: boolean;
   useAmericanDate: boolean;
   greetingsSchema: string;
   daySchema: string;

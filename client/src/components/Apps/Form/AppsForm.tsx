@@ -1,21 +1,29 @@
-import { useState, useEffect, ChangeEvent, SyntheticEvent } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { NewApp } from '../../../interfaces';
-
-import classes from './AppForm.module.css';
-
-import { ModalForm, InputGroup, Button } from '../../UI';
-import { inputHandler, newAppTemplate } from '../../../utility';
 import { bindActionCreators } from 'redux';
+
+import { App, Category, NewApp } from '../../../interfaces';
 import { actionCreators } from '../../../store';
 import { State } from '../../../store/reducers';
+import { inputHandler, newAppTemplate } from '../../../utility';
+import { Button, InputGroup, ModalForm } from '../../UI';
+import classes from './Form.module.css';
 
+// Redux
+// Typescript
+// UI
+// CSS
+// Utils
 interface Props {
   modalHandler: () => void;
+  app?: App;
 }
 
-export const AppForm = ({ modalHandler }: Props): JSX.Element => {
-  const { appInUpdate } = useSelector((state: State) => state.apps);
+export const AppsForm = ({
+  app,
+  modalHandler,
+}: Props): JSX.Element => {
+  const { categories } = useSelector((state: State) => state.apps);
 
   const dispatch = useDispatch();
   const { addApp, updateApp, setEditApp, createNotification } =
@@ -23,17 +31,17 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
 
   const [useCustomIcon, toggleUseCustomIcon] = useState<boolean>(false);
   const [customIcon, setCustomIcon] = useState<File | null>(null);
+
   const [formData, setFormData] = useState<NewApp>(newAppTemplate);
 
+  // Load app data if provided for editing
   useEffect(() => {
-    if (appInUpdate) {
-      setFormData({
-        ...appInUpdate,
-      });
+    if (app) {
+      setFormData({ ...app });
     } else {
       setFormData(newAppTemplate);
     }
-  }, [appInUpdate]);
+  }, [app]);
 
   const inputChangeHandler = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -53,7 +61,8 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
     }
   };
 
-  const formSubmitHandler = (e: SyntheticEvent<HTMLFormElement>): void => {
+  // Apps form handler
+  const formSubmitHandler = (e: FormEvent): void => {
     e.preventDefault();
 
     for (let field of ['name', 'url', 'icon'] as const) {
@@ -69,7 +78,6 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
 
     const createFormData = (): FormData => {
       const data = new FormData();
-
       if (customIcon) {
         data.append('icon', customIcon);
       }
@@ -77,30 +85,71 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
       data.append('name', formData.name);
       data.append('description', formData.description);
       data.append('url', formData.url);
+      data.append('categoryId', `${formData.categoryId}`);
       data.append('isPublic', `${formData.isPublic ? 1 : 0}`);
 
       return data;
     };
 
-    if (!appInUpdate) {
+    const checkCategory = (): boolean => {
+      if (formData.categoryId < 0) {
+        createNotification({
+          title: 'Error',
+          message: 'Please select category',
+        });
+
+        return false;
+      }
+
+      return true;
+    };
+
+    if (!app) {
+      // add new app
+      if (!checkCategory()) return;
+
+      if (formData.categoryId < 0) {
+        createNotification({
+          title: 'Error',
+          message: 'Please select category',
+        });
+        return;
+      }
+
       if (customIcon) {
         const data = createFormData();
         addApp(data);
       } else {
         addApp(formData);
       }
+
+      setFormData({
+        ...newAppTemplate,
+        categoryId: formData.categoryId,
+        isPublic: formData.isPublic,
+      });
     } else {
+      // update
+      if (!checkCategory()) return;
+
       if (customIcon) {
         const data = createFormData();
-        updateApp(appInUpdate.id, data);
+        updateApp(app.id, data, {
+          prev: app.categoryId,
+          curr: formData.categoryId,
+        });
       } else {
-        updateApp(appInUpdate.id, formData);
-        modalHandler();
+        updateApp(app.id, formData, {
+          prev: app.categoryId,
+          curr: formData.categoryId,
+        });
       }
+
+      modalHandler();
     }
 
-    setFormData(newAppTemplate);
-    setEditApp(null);
+    setFormData({ ...newAppTemplate, categoryId: formData.categoryId });
+    setCustomIcon(null);
   };
 
   return (
@@ -112,7 +161,7 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
           type="text"
           name="name"
           id="name"
-          placeholder="Bookstack"
+          placeholder="Reddit"
           required
           value={formData.name}
           onChange={(e) => inputChangeHandler(e)}
@@ -126,13 +175,34 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
           type="text"
           name="url"
           id="url"
-          placeholder="bookstack.example.com"
+          placeholder="reddit.com"
           required
           value={formData.url}
           onChange={(e) => inputChangeHandler(e)}
         />
       </InputGroup>
 
+      {/* CATEGORY */}
+      <InputGroup>
+        <label htmlFor="categoryId">App Category</label>
+        <select
+          name="categoryId"
+          id="categoryId"
+          required
+          onChange={(e) => inputChangeHandler(e, { isNumber: true })}
+          value={formData.categoryId}
+        >
+          <option value={-1}>Select category</option>
+          {categories.map((category: Category): JSX.Element => {
+            return (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            );
+          })}
+        </select>
+      </InputGroup>
+      
       {/* DESCRIPTION */}
       <InputGroup>
         <label htmlFor="description">App description</label>
@@ -151,7 +221,7 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
 
       {/* ICON */}
       {!useCustomIcon ? (
-        // use mdi icon
+        // mdi
         <InputGroup>
           <label htmlFor="icon">App icon</label>
           <input
@@ -159,7 +229,6 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
             name="icon"
             id="icon"
             placeholder="book-open-outline"
-            required
             value={formData.icon}
             onChange={(e) => inputChangeHandler(e)}
           />
@@ -178,14 +247,13 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
           </span>
         </InputGroup>
       ) : (
-        // upload custom icon
+        // custom
         <InputGroup>
-          <label htmlFor="icon">App Icon</label>
+          <label htmlFor="icon">App Icon (optional)</label>
           <input
             type="file"
             name="icon"
             id="icon"
-            required
             onChange={(e) => fileChangeHandler(e)}
             accept=".jpg,.jpeg,.png,.svg,.ico"
           />
@@ -201,7 +269,7 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
         </InputGroup>
       )}
 
-      {/* VISIBILITY */}
+      {/* VISIBILTY */}
       <InputGroup>
         <label htmlFor="isPublic">App visibility</label>
         <select
@@ -215,11 +283,7 @@ export const AppForm = ({ modalHandler }: Props): JSX.Element => {
         </select>
       </InputGroup>
 
-      {!appInUpdate ? (
-        <Button>Add new application</Button>
-      ) : (
-        <Button>Update application</Button>
-      )}
+      <Button>{app ? 'Update app' : 'Add new app'}</Button>
     </ModalForm>
   );
 };

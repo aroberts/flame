@@ -1,14 +1,31 @@
-import { App } from '../../interfaces';
-
 import {
-  AddThemeAction,
-  DeleteThemeAction,
-  EditThemeAction,
-  FetchThemesAction,
-  SetThemeAction,
-  UpdateThemeAction,
-} from './theme';
-
+  AddAppAction,
+  DeleteAppAction,
+  PinAppAction,
+  ReorderAppsAction,
+  SetEditAppAction,
+  SortAppsAction,
+  UpdateAppAction,
+} from './app';
+import { AuthErrorAction, AutoLoginAction, LoginAction, LogoutAction } from './auth';
+import {
+  AddBookmarkAction,
+  DeleteBookmarkAction,
+  ReorderBookmarksAction,
+  SetEditBookmarkAction,
+  SortBookmarksAction,
+  UpdateBookmarkAction,
+} from './bookmark';
+import {
+  AddCategoryAction,
+  DeleteCategoryAction,
+  GetCategoriesAction,
+  PinCategoryAction,
+  ReorderCategoriesAction,
+  SetEditCategoryAction,
+  SortCategoriesAction,
+  UpdateCategoryAction,
+} from './category';
 import {
   AddQueryAction,
   DeleteQueryAction,
@@ -17,46 +34,15 @@ import {
   UpdateConfigAction,
   UpdateQueryAction,
 } from './config';
-
+import { ClearNotificationAction, CreateNotificationAction } from './notification';
 import {
-  ClearNotificationAction,
-  CreateNotificationAction,
-} from './notification';
-
-import {
-  GetAppsAction,
-  PinAppAction,
-  AddAppAction,
-  DeleteAppAction,
-  UpdateAppAction,
-  ReorderAppsAction,
-  SortAppsAction,
-  SetEditAppAction,
-} from './app';
-
-import {
-  GetCategoriesAction,
-  AddCategoryAction,
-  PinCategoryAction,
-  DeleteCategoryAction,
-  UpdateCategoryAction,
-  SortCategoriesAction,
-  ReorderCategoriesAction,
-  AddBookmarkAction,
-  DeleteBookmarkAction,
-  UpdateBookmarkAction,
-  SetEditCategoryAction,
-  SetEditBookmarkAction,
-  ReorderBookmarksAction,
-  SortBookmarksAction,
-} from './bookmark';
-
-import {
-  AuthErrorAction,
-  AutoLoginAction,
-  LoginAction,
-  LogoutAction,
-} from './auth';
+  AddThemeAction,
+  DeleteThemeAction,
+  EditThemeAction,
+  FetchThemesAction,
+  SetThemeAction,
+  UpdateThemeAction,
+} from './theme';
 
 export type Action =
   // Theme
@@ -77,7 +63,6 @@ export type Action =
   | CreateNotificationAction
   | ClearNotificationAction
   // Apps
-  | GetAppsAction<undefined | App[]>
   | PinAppAction
   | AddAppAction
   | DeleteAppAction

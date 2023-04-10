@@ -1,31 +1,20 @@
-// React
-import { useState, useEffect, FormEvent, ChangeEvent, Fragment } from 'react';
+import { ChangeEvent, FormEvent, Fragment, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
-// Typescript
-import { Query, GeneralForm } from '../../../interfaces';
-
-// Components
-import { CustomQueries } from './CustomQueries/CustomQueries';
-
-// UI
-import { Button, SettingsHeadline, InputGroup } from '../../UI';
-
-// Utils
-import { inputHandler, generalSettingsTemplate } from '../../../utility';
-
-// Data
-import { queries } from '../../../utility/searchQueries.json';
-
-// Redux
-import { State } from '../../../store/reducers';
 import { bindActionCreators } from 'redux';
+
+import { GeneralForm, Query } from '../../../interfaces';
 import { actionCreators } from '../../../store';
+import { State } from '../../../store/reducers';
+import { generalSettingsTemplate, inputHandler } from '../../../utility';
+import { queries } from '../../../utility/searchQueries.json';
+import { Button, InputGroup, SettingsHeadline } from '../../UI';
+import { CustomQueries } from './CustomQueries/CustomQueries';
 
 export const GeneralSettings = (): JSX.Element => {
   const {
     config: { loading, customQueries, config },
-    bookmarks: { categories },
+    apps: { categories: appCategories },
+    bookmarks: { categories: bookmarkCategories },
   } = useSelector((state: State) => state);
 
   const dispatch = useDispatch();
@@ -53,10 +42,13 @@ export const GeneralSettings = (): JSX.Element => {
 
     // Sort entities with new settings
     if (formData.useOrdering !== config.useOrdering) {
-      sortApps();
       sortCategories();
 
-      for (let { id } of categories) {
+      for (let { id } of appCategories) {
+        sortApps(id);
+      }
+
+      for (let { id } of bookmarkCategories) {
         sortBookmarks(id);
       }
     }

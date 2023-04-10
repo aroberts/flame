@@ -20,6 +20,7 @@ const createApp = asyncWrapper(async (req, res, next) => {
 
   const app = await App.create({
     ...body,
+    categoryId: parseInt(req.body.categoryId),
     isPinned: pinAppsByDefault,
   });
 

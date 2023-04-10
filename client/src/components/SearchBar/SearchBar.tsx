@@ -1,23 +1,20 @@
-import { useRef, useEffect, KeyboardEvent } from 'react';
-
-// Redux
+import { KeyboardEvent, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { bindActionCreators } from 'redux';
 
-// Typescript
-import { App, Category } from '../../interfaces';
-
-// CSS
+import { Category } from '../../interfaces';
+import { actionCreators } from '../../store';
+import { State } from '../../store/reducers';
+import { redirectUrl, searchParser, urlParser } from '../../utility';
 import classes from './SearchBar.module.css';
 
+// Redux
+// Typescript
+// CSS
 // Utils
-import { searchParser, urlParser, redirectUrl } from '../../utility';
-import { State } from '../../store/reducers';
-import { bindActionCreators } from 'redux';
-import { actionCreators } from '../../store';
-
 interface Props {
   setLocalSearch: (query: string) => void;
-  appSearchResult: App[] | null;
+  appSearchResult: Category[] | null;
   bookmarkSearchResult: Category[] | null;
 }
 
@@ -91,8 +88,8 @@ export const SearchBar = (props: Props): JSX.Element => {
         redirectUrl(url, sameTab);
       } else if (isLocal) {
         // Local query -> redirect if at least 1 result found
-        if (appSearchResult?.length) {
-          redirectUrl(appSearchResult[0].url, sameTab);
+        if (appSearchResult?.[0]?.apps?.length) {
+          redirectUrl(appSearchResult[0].apps[0].url, sameTab);
         } else if (bookmarkSearchResult?.[0]?.bookmarks?.length) {
           redirectUrl(bookmarkSearchResult[0].bookmarks[0].url, sameTab);
         } else {

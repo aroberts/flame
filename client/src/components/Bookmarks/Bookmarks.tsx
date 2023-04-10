@@ -1,30 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-
-// Redux
 import { useDispatch, useSelector } from 'react-redux';
-import { State } from '../../store/reducers';
+import { Link } from 'react-router-dom';
 import { bindActionCreators } from 'redux';
+
+import { Bookmark, Category } from '../../interfaces';
 import { actionCreators } from '../../store';
-
-// Typescript
-import { Category, Bookmark } from '../../interfaces';
-
-// CSS
-import classes from './Bookmarks.module.css';
-
-// UI
-import {
-  Container,
-  Headline,
-  ActionButton,
-  Spinner,
-  Modal,
-  Message,
-} from '../UI';
-
-// Components
+import { State } from '../../store/reducers';
+import { ActionButton, Container, Headline, Message, Modal, Spinner } from '../UI';
 import { BookmarkGrid } from './BookmarkGrid/BookmarkGrid';
+import classes from './Bookmarks.module.css';
 import { Form } from './Form/Form';
 import { Table } from './Table/Table';
 
@@ -46,15 +30,8 @@ export const Bookmarks = (props: Props): JSX.Element => {
 
   // Get Redux action creators
   const dispatch = useDispatch();
-  const { getCategories, setEditCategory, setEditBookmark } =
+  const { setEditCategory, setEditBookmark } =
     bindActionCreators(actionCreators, dispatch);
-
-  // Load categories if array is empty
-  useEffect(() => {
-    if (!categories.length) {
-      getCategories();
-    }
-  }, []);
 
   // Form
   const [modalIsOpen, setModalIsOpen] = useState(false);

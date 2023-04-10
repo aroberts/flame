@@ -1,19 +1,12 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-
-// Redux
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { State } from '../../../store/reducers';
 import { bindActionCreators } from 'redux';
-import { actionCreators } from '../../../store';
 
-// Typescript
 import { UISettingsForm } from '../../../interfaces';
-
-// UI
-import { InputGroup, Button, SettingsHeadline } from '../../UI';
-
-// Utils
-import { uiSettingsTemplate, inputHandler } from '../../../utility';
+import { actionCreators } from '../../../store';
+import { State } from '../../../store/reducers';
+import { inputHandler, uiSettingsTemplate } from '../../../utility';
+import { Button, InputGroup, SettingsHeadline } from '../../UI';
 
 export const UISettings = (): JSX.Element => {
   const { loading, config } = useSelector((state: State) => state.config);
@@ -223,13 +216,27 @@ export const UISettings = (): JSX.Element => {
         </select>
       </InputGroup>
 
-      {/* HIDE CATEGORIES */}
+      {/* HIDE BOOKMARKS */}
       <InputGroup>
-        <label htmlFor="hideCategories">Hide categories</label>
+        <label htmlFor="hideBookmarks">Hide bookmarks</label>
         <select
-          id="hideCategories"
-          name="hideCategories"
-          value={formData.hideCategories ? 1 : 0}
+          id="hideBookmarks"
+          name="hideBookmarks"
+          value={formData.hideBookmarks ? 1 : 0}
+          onChange={(e) => inputChangeHandler(e, { isBool: true })}
+        >
+          <option value={1}>True</option>
+          <option value={0}>False</option>
+        </select>
+      </InputGroup>
+
+      {/* HIDE EMPTY CATEGORIES */}
+      <InputGroup>
+        <label htmlFor="hideEmptyCategories">Hide empty categories</label>
+        <select
+          id="hideEmptyCategories"
+          name="hideEmptyCategories"
+          value={formData.hideEmptyCategories ? 1 : 0}
           onChange={(e) => inputChangeHandler(e, { isBool: true })}
         >
           <option value={1}>True</option>

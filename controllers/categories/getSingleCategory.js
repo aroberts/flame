@@ -1,6 +1,7 @@
 const asyncWrapper = require('../../middleware/asyncWrapper');
 const ErrorResponse = require('../../utils/ErrorResponse');
 const Category = require('../../models/Category');
+const App = require('../../models/App');
 const Bookmark = require('../../models/Bookmark');
 const { Sequelize } = require('sequelize');
 const loadConfig = require('../../utils/loadConfig');
@@ -15,12 +16,23 @@ const getSingleCategory = asyncWrapper(async (req, res, next) => {
 
   const order =
     orderType == 'name'
-      ? [[Sequelize.fn('lower', Sequelize.col('bookmarks.name')), 'ASC']]
-      : [[{ model: Bookmark, as: 'bookmarks' }, orderType, 'ASC']];
+      ? [
+          [Sequelize.fn('lower', Sequelize.col('apps.name')), 'ASC'],
+          [Sequelize.fn('lower', Sequelize.col('bookmarks.name')), 'ASC']
+        ]
+      : [
+          [{ model: App, as: 'apps' }, orderType, 'ASC']
+          [{ model: Bookmark, as: 'bookmarks' }, orderType, 'ASC']
+        ];
 
   const category = await Category.findOne({
     where: { id: req.params.id, ...visibility },
     include: [
+      {
+        model: App,
+        as: 'apps',
+        where: visibility,
+      },
       {
         model: Bookmark,
         as: 'bookmarks',

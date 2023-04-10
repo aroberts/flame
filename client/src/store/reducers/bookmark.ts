@@ -1,13 +1,10 @@
-import { Bookmark, Category } from '../../interfaces';
+import { Bookmark } from '../../interfaces';
 import { sortData } from '../../utility';
 import { ActionType } from '../action-types';
 import { Action } from '../actions';
+import { categoriesReducer, CategoriesState } from './category';
 
-interface BookmarksState {
-  loading: boolean;
-  errors: string | undefined;
-  categories: Category[];
-  categoryInEdit: Category | null;
+interface BookmarksState extends CategoriesState {
   bookmarkInEdit: Bookmark | null;
 }
 
@@ -15,6 +12,7 @@ const initialState: BookmarksState = {
   loading: true,
   errors: undefined,
   categories: [],
+  type: 'bookmarks',
   categoryInEdit: null,
   bookmarkInEdit: null,
 };
@@ -24,29 +22,7 @@ export const bookmarksReducer = (
   action: Action
 ): BookmarksState => {
   switch (action.type) {
-    case ActionType.getCategories: {
-      return {
-        ...state,
-        loading: true,
-        errors: undefined,
-      };
-    }
-
-    case ActionType.getCategoriesSuccess: {
-      return {
-        ...state,
-        loading: false,
-        categories: action.payload,
-      };
-    }
-
-    case ActionType.addCategory: {
-      return {
-        ...state,
-        categories: [...state.categories, { ...action.payload, bookmarks: [] }],
-      };
-    }
-
+    
     case ActionType.addBookmark: {
       const categoryIdx = state.categories.findIndex(
         (category) => category.id === action.payload.categoryId
@@ -65,56 +41,6 @@ export const bookmarksReducer = (
           ...state.categories.slice(categoryIdx + 1),
         ],
         categoryInEdit: targetCategory,
-      };
-    }
-
-    case ActionType.pinCategory: {
-      const categoryIdx = state.categories.findIndex(
-        (category) => category.id === action.payload.id
-      );
-
-      return {
-        ...state,
-        categories: [
-          ...state.categories.slice(0, categoryIdx),
-          {
-            ...action.payload,
-            bookmarks: [...state.categories[categoryIdx].bookmarks],
-          },
-          ...state.categories.slice(categoryIdx + 1),
-        ],
-      };
-    }
-
-    case ActionType.deleteCategory: {
-      const categoryIdx = state.categories.findIndex(
-        (category) => category.id === action.payload
-      );
-
-      return {
-        ...state,
-        categories: [
-          ...state.categories.slice(0, categoryIdx),
-          ...state.categories.slice(categoryIdx + 1),
-        ],
-      };
-    }
-
-    case ActionType.updateCategory: {
-      const categoryIdx = state.categories.findIndex(
-        (category) => category.id === action.payload.id
-      );
-
-      return {
-        ...state,
-        categories: [
-          ...state.categories.slice(0, categoryIdx),
-          {
-            ...action.payload,
-            bookmarks: [...state.categories[categoryIdx].bookmarks],
-          },
-          ...state.categories.slice(categoryIdx + 1),
-        ],
       };
     }
 
@@ -170,27 +96,6 @@ export const bookmarksReducer = (
       };
     }
 
-    case ActionType.sortCategories: {
-      return {
-        ...state,
-        categories: sortData<Category>(state.categories, action.payload),
-      };
-    }
-
-    case ActionType.reorderCategories: {
-      return {
-        ...state,
-        categories: action.payload,
-      };
-    }
-
-    case ActionType.setEditCategory: {
-      return {
-        ...state,
-        categoryInEdit: action.payload,
-      };
-    }
-
     case ActionType.setEditBookmark: {
       return {
         ...state,
@@ -240,6 +145,6 @@ export const bookmarksReducer = (
     }
 
     default:
-      return state;
+      return categoriesReducer(state, action);
   }
 };

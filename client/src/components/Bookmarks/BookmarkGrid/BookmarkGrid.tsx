@@ -1,11 +1,11 @@
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 
-import classes from './BookmarkGrid.module.css';
-
 import { Category } from '../../../interfaces';
-
-import { BookmarkCard } from '../BookmarkCard/BookmarkCard';
+import { State } from '../../../store/reducers';
 import { Message } from '../../UI';
+import { BookmarkCard } from '../BookmarkCard/BookmarkCard';
+import classes from './BookmarkGrid.module.css';
 
 interface Props {
   categories: Category[];
@@ -22,15 +22,23 @@ export const BookmarkGrid = (props: Props): JSX.Element => {
     fromHomepage = false,
   } = props;
 
+  const {
+    config: { config }
+  } = useSelector((state: State) => state);
+
+  const shouldBeShown = (category: Category) => {
+    return !config.hideEmptyCategories || category.bookmarks.length > 0 || !fromHomepage
+  }
+
   let bookmarks: JSX.Element;
 
-  if (categories.length) {
+  if (categories.length && categories.some(shouldBeShown)) {
     if (searching && !categories[0].bookmarks.length) {
       bookmarks = <Message>No bookmarks match your search criteria</Message>;
     } else {
       bookmarks = (
         <div className={classes.BookmarkGrid}>
-          {categories.map(
+          {categories.filter(shouldBeShown).map(
             (category: Category): JSX.Element => (
               <BookmarkCard
                 category={category}
@@ -43,7 +51,7 @@ export const BookmarkGrid = (props: Props): JSX.Element => {
       );
     }
   } else {
-    if (totalCategories) {
+    if (totalCategories && !config.hideEmptyCategories) {
       bookmarks = (
         <Message>
           There are no pinned categories. You can pin them from the{' '}
