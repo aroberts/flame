@@ -1,6 +1,6 @@
 const { join } = require('path');
 const express = require('express');
-const { errorHandler } = require('./middleware');
+const { errorHandler, reverseProxyHeaders } = require('./middleware');
 
 const api = express();
 
@@ -10,6 +10,9 @@ api.use('/uploads', express.static(join(__dirname, 'data/uploads')));
 api.get(/^\/(?!api)/, (req, res) => {
   res.sendFile(join(__dirname, 'public/index.html'));
 });
+
+// reverse proxy user population/detection middleware
+api.use('/api', reverseProxyHeaders);
 
 // Body parser
 api.use(express.json());
