@@ -113,10 +113,10 @@ const useDocker = async (apps) => {
         const categoriesLabels = labels['flame.category'] ? labels['flame.category'].split(';') : [];
         const orders = labels['flame.order'] ? labels['flame.order'].split(';') : [];
         const icons = labels['flame.icon'] ? labels['flame.icon'].split(';') : [];
-        const includeUsers = labels['flame.users.include'] ? labels['flame.users.include'].split(';') : [];
-        const excludeUsers = labels['flame.users.exclude'] ? labels['flame.users.exclude'].split(';') : [];
-        const includeGroups = labels['flame.groups.include'] ? labels['flame.groups.include'].split(';') : [];
-        const excludeGroups = labels['flame.groups.exclude'] ? labels['flame.groups.exclude'].split(';') : [];
+        const allowUsers = labels['flame.users.allow'] ? labels['flame.users.allow'].split(';') : [];
+        const denyUsers = labels['flame.users.deny'] ? labels['flame.users.deny'].split(';') : [];
+        const allowGroups = labels['flame.groups.allow'] ? labels['flame.groups.allow'].split(';') : [];
+        const denyGroups = labels['flame.groups.deny'] ? labels['flame.groups.deny'].split(';') : [];
 
         for (let i = 0; i < names.length; i++) {
           let catName = categoriesLabels[i] || labels[process.env.FLAME_DEFAULT_CATEGORY_LABEL]
@@ -136,10 +136,10 @@ const useDocker = async (apps) => {
             icon: icons[i] || 'docker',
             categoryId: category.id,
             orderId: orders[i] || 500,
-            includeUsers: includeUsers[i] || "",
-            excludeUsers: includeUsers[i] || "",
-            includeGroups: includeGroups[i] || "",
-            excludeGroups: includeGroups[i] || "",
+            allowUsers: allowUsers[i] || "",
+            denyUsers: denyUsers[i] || "",
+            allowGroups: allowGroups[i] || "",
+            denyGroups: denyGroups[i] || "",
           });
         }
       }
