@@ -52,7 +52,7 @@ const getAllCategories = asyncWrapper(async (req, res, next) => {
 
   let appsPredicate;
   let bookmarksPredicate;
-  if (req.isAuthenticated) {
+  if (req.isAuthenticated || req.rpUser) {
     appsPredicate = (app) => visibility.canViewApp(app, req.rpUser, req.rpGroups);
     bookmarksPredicate = (b) => b;
   } else {
