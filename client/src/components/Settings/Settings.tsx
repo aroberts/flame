@@ -54,21 +54,6 @@ export const Settings = (): JSX.Element => {
         <section className={classes.SettingsContent}>
           <Switch>
             <Route exact path="/settings" component={Themer} />
-            <ProtectedRoute
-              path="/settings/weather"
-              component={WeatherSettings}
-            />
-            <ProtectedRoute
-              path="/settings/general"
-              component={GeneralSettings}
-            />
-            <ProtectedRoute path="/settings/interface" component={UISettings} />
-            <ProtectedRoute
-              path="/settings/docker"
-              component={DockerSettings}
-            />
-            <ProtectedRoute path="/settings/css" component={StyleSettings} />
-            <Route path="/settings/app" component={AppDetails} />
           </Switch>
         </section>
       </div>
