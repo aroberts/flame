@@ -5,6 +5,7 @@ const Bookmark = require('../../models/Bookmark');
 const { Sequelize } = require('sequelize');
 const loadConfig = require('../../utils/loadConfig');
 const initIntegrationsApps = require('../../utils/init/initIntegrationsApps');
+const visibility = require('../../utils/visibility');
 
 // @desc      Get all categories
 // @route     GET /api/categories
@@ -49,17 +50,22 @@ const getAllCategories = asyncWrapper(async (req, res, next) => {
     where,
   });
 
+  let appsPredicate;
+  let bookmarksPredicate;
   if (req.isAuthenticated) {
-    output = categories;
+    appsPredicate = (app) => visibility.canViewApp(app, req.rpUser, req.rpGroups);
+    bookmarksPredicate = (b) => b;
   } else {
-    // filter out private apps/bookmarks
-    output = categories.map((c) => c.get({ plain: true }));
-    output = output.map((c) => ({
-      ...c,
-      apps: c.apps.filter((b) => b.isPublic),
-      bookmarks: c.bookmarks.filter((b) => b.isPublic),
-    }));
+    appsPredicate = (b) => b.isPublic;
+    bookmarksPredicate = (b) => b.isPublic;
   }
+
+  output = categories.map((c) => c.get({ plain: true }));
+  output = output.map((c) => ({
+    ...c,
+    apps: c.apps.filter(appsPredicate),
+    bookmarks: c.bookmarks.filter(bookmarksPredicate),
+  }));
 
   res.status(200).json({
     success: true,

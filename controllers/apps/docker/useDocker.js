@@ -113,11 +113,16 @@ const useDocker = async (apps) => {
         const categoriesLabels = labels['flame.category'] ? labels['flame.category'].split(';') : [];
         const orders = labels['flame.order'] ? labels['flame.order'].split(';') : [];
         const icons = labels['flame.icon'] ? labels['flame.icon'].split(';') : [];
+        const includeUsers = labels['flame.users.include'] ? labels['flame.users.include'].split(';') : [];
+        const excludeUsers = labels['flame.users.exclude'] ? labels['flame.users.exclude'].split(';') : [];
+        const includeGroups = labels['flame.groups.include'] ? labels['flame.groups.include'].split(';') : [];
+        const excludeGroups = labels['flame.groups.exclude'] ? labels['flame.groups.exclude'].split(';') : [];
 
-        for (let i = 0; i < names.length; i++) {     
-          let category = categoriesLabels[i] ? categories.find(category => category.name.toUpperCase() === categoriesLabels[i].toUpperCase()) : dockerDefaultCategory;
+        for (let i = 0; i < names.length; i++) {
+          let catName = categoriesLabels[i] || labels[process.env.FLAME_DEFAULT_CATEGORY_LABEL]
+          let category = catName ? categories.find(category => category.name.toUpperCase() === catName.toUpperCase()) : dockerDefaultCategory;
           if (!category) {
-            category = await createNewCategory(categoriesLabels[i]);
+            category = await createNewCategory(catName);
             if (category) {
               categories.push(category);
             } else {
@@ -131,6 +136,10 @@ const useDocker = async (apps) => {
             icon: icons[i] || 'docker',
             categoryId: category.id,
             orderId: orders[i] || 500,
+            includeUsers: includeUsers[i] || "",
+            excludeUsers: includeUsers[i] || "",
+            includeGroups: includeGroups[i] || "",
+            excludeGroups: includeGroups[i] || "",
           });
         }
       }
