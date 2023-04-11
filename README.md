@@ -6,27 +6,35 @@
 This fork primarily exists to support several reverse proxy features. Specifically, hiding and showing apps based on the logged in user (and their groups) according to a reverse proxy (e.g. [Authelia](https://github.com/authelia/authelia)). I tried to make the overall system more static as well, and configure via deployment rather than in the application, but much of the in-app modification code is still in place to facilitate merges.
 
 I also included commits from some other forks:
- - (glitchcrab/fix/non-root) remove chown from CMD to allow image to run as an unprivileged user 
+ - (glitchcrab/fix/non-root) remove chown from CMD to allow image to run as an unprivileged user
  - (pmjklemm/fix_sameTab) fix sameTab for prefix==l
  - (fdarveau) categories for apps
 
-### Fork Configuration:
+### Fork configuration
+
 New environment variables:
  - `FLAME_RP_USER_HEADER`: Header containing the logged in user's id [`Remote-User`]
  - `FLAME_RP_GROUPS_HEADER`: Header containing the logged in user's groups [`Remote-Groups`]
  - `FLAME_RP_GROUPS_SEPARATOR`: Separator string for the user's groups [`,`]
  - `FLAME_DEFAULT_CATEGORY_LABEL`: use the contents of this label as the default docker category when none is provided. If the provided label is unset on the image, or no label is provided, Flame will fall back to a default `Docker` category.
 
-New labels
+New labels:
   - `flame.users.allow`
   - `flame.users.deny`
   - `flame.groups.allow`
   - `flame.groups.deny`
+
 Each of these are comma-delimited lists of users or groups to be allowed or denied when deciding whether or not to show a particular app. If multiple apps are declared for the same deployed image, use a semicolon to delimit the lists for each app. The ACL rules follow this algorithm:
 - if `allow` is not specified, all users/groups are allowed
 - if `deny` is not specified, no users/groups are denied
 - when both are specified, `allow` trumps `deny`
 - when both are specified, `user` trumps `group`
+
+This logic was only added to the docker provider.
+
+### Other changes
+
+Most settings are now unchangeable from the app; Settings are loaded from the `initialConfig.json` file on every boot instead.
 
 
 ## Important update 2021-12-10 [fdarveau]
