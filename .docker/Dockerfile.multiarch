@@ -10,17 +10,11 @@ RUN apk --no-cache --virtual build-dependencies add python python3 make g++ \
 COPY . .    
 
 RUN mkdir -p ./public ./data \
-    && echo "DEBUGGGGG 1" \
     && cd ./client \
-    && echo "DEBUGGGGG 2" \
     && npm install --production \
-    && echo "DEBUGGGGG 3" \
     && npm run build \
-    && echo "DEBUGGGGG 4" \
     && cd .. \
-    && echo "DEBUGGGGG 5" \
     && mv ./client/build/* ./public \
-    && echo "DEBUGGGGG 6" \
     && rm -rf ./client
 
 FROM node:16-alpine3.11
