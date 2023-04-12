@@ -3,10 +3,10 @@ const ALLOW = 2;
 const DENY= 3;
 
 const canViewApp = (app, user, groups) => {
-  const allowUsers = app.allowUsers?.split(",") || []
-  const denyUsers = app.denyUsers?.split(",") || []
-  const allowGroups = app.allowGroups?.split(",") || []
-  const denyGroups = app.denyGroups?.split(",") || []
+  const allowUsers = (app.allowUsers?.trim().length ? app.allowUsers.trim().split(",") : [])
+  const denyUsers = (app.denyUsers?.trim().length ? app.denyUsers.trim().split(",") : [])
+  const allowGroups = (app.allowGroups?.trim().length ? app.allowGroups.trim().split(",") : [])
+  const denyGroups = (app.denyGroups?.trim().length ? app.denyGroups.trim().split(",") : [])
 
   const hasUserAcl = !!allowUsers.length || !!denyUsers.length
   const hasGroupAcl = !!allowGroups.length || !!denyGroups.length

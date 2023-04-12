@@ -40,6 +40,23 @@ const App = sequelize.define(
       allowNull: false,
       defaultValue: '',
     },
+    allowUsers: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    denyUsers: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    allowGroups: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    denyGroups: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+
   },
   {
     tableName: 'apps',
