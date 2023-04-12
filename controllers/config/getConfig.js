@@ -6,6 +6,7 @@ const loadConfig = require('../../utils/loadConfig');
 // @access    Public
 const getConfig = asyncWrapper(async (req, res, next) => {
   const config = await loadConfig();
+  config.loggedInUser = req.rpUser;
 
   res.status(200).json({
     success: true,

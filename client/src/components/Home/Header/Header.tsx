@@ -16,7 +16,7 @@ import { getDateTime } from './functions/getDateTime';
 import { greeter } from './functions/greeter';
 
 export const Header = (): JSX.Element => {
-  const { hideHeader, hideDate, showTime } = useSelector(
+  const { hideHeader, hideDate, showTime, loggedInUser } = useSelector(
     (state: State) => state.config.config
   );
 
@@ -37,6 +37,7 @@ export const Header = (): JSX.Element => {
   return (
     <header className={classes.Header}>
       {(!hideDate || showTime) && <p>{dateTime}</p>}
+      <p className={classes.LoggedInUser}>{loggedInUser}</p>
 
       <Link to="/settings" className={classes.SettingsLink}>
         Go to Settings
