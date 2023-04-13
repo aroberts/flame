@@ -111,6 +111,7 @@ const useDocker = async (apps) => {
         const names = labels['flame.name'].split(';');
         const urls = labels['flame.url'].split(';');
         const categoriesLabels = labels['flame.category'] ? labels['flame.category'].split(';') : [];
+        const categoriesOrders = labels['flame.category.order'] ? labels['flame.category.order'].split(';') : [];
         const orders = labels['flame.order'] ? labels['flame.order'].split(';') : [];
         const icons = labels['flame.icon'] ? labels['flame.icon'].split(';') : [];
         const allowUsers = labels['flame.users.allow'] ? labels['flame.users.allow'].split(';') : [];
@@ -121,8 +122,12 @@ const useDocker = async (apps) => {
         for (let i = 0; i < names.length; i++) {
           let catName = categoriesLabels[i] || labels[process.env.FLAME_DEFAULT_CATEGORY_LABEL]
           let category = catName ? categories.find(category => category.name.toUpperCase() === catName.toUpperCase()) : dockerDefaultCategory;
-          if (!category) {
-            category = await createNewCategory(catName);
+          if (category) {
+            if (categoriesOrders[i]) {
+              category = await category.update({ orderId: categoriesOrders[i] });
+            }
+          } else {
+            category = await createNewCategory(catName, categoriesOrders[i]);
             if (category) {
               categories.push(category);
             } else {
@@ -184,12 +189,12 @@ const useDocker = async (apps) => {
 };
 
 // TODO : Move somewhere else ?
-async function createNewCategory(newCategoryName) {
+async function createNewCategory(newCategoryName, orderId) {
   return await Category.create({
     name: newCategoryName,
     type: 'apps',
     isPinned: true,
-    orderId: Number.MAX_SAFE_INTEGER //New category will always be last and can then be re-ordered manually by user
+    orderId: orderId || Number.MAX_SAFE_INTEGER //New category will always be last and can then be re-ordered manually by user
   });
 }
 
