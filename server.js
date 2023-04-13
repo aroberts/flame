@@ -14,6 +14,7 @@ const Sockets = require('./Sockets');
 // Utils
 const initApp = require('./utils/init');
 const initIntegrationsApps = require('./utils/init/initIntegrationsApps');
+const wipeDb = require('./utils/wipeDb');
 const Logger = require('./utils/Logger');
 const logger = new Logger();
 
@@ -25,6 +26,8 @@ const logger = new Logger();
   await connectDB();
   await associateModels();  
   await jobs();
+
+  await wipeDb();
 
   // Load apps to create/update apps from integrations (Docker, Kubernetes, etc.)
   await initIntegrationsApps();
