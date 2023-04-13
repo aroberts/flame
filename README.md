@@ -27,15 +27,16 @@ New labels:
 Each of these are comma-delimited lists of users or groups to be allowed or denied when deciding whether or not to show a particular app. If multiple apps are declared for the same deployed image, use a semicolon to delimit the lists for each app. The ACL rules follow this algorithm:
 - if `allow` is not specified, all users/groups are allowed
 - if `deny` is not specified, no users/groups are denied
-- when both are specified, `allow` trumps `deny`
-- when both are specified, `user` trumps `group`
+- when both are specified, `allow` overrides `deny`
+- when both are specified, `user` overrides `group`
 
 This logic was only added to the docker provider.
 
 ### Other changes
 
-Most settings are now unchangeable from the app; Settings are loaded from the `initialConfig.json` file on every boot instead.
-
+ - Most settings are now unchangeable from the app; Settings are loaded from the `initialConfig.json` file on every boot instead.
+ - Apps and categories are *wiped on boot*. 
+ - Categories can be assigned an order via the `flame.category.order` docker label. Order is numeric and results are sorted ascending.
 
 ## Important update 2021-12-10 [fdarveau]
 Due to prolonged inactivity on my end and multiple conflicting changes with the original repository, I applied app categories from scratch using the original repository's code. **This means there are some breaking changes, the biggest one being the database**. The database schemas of the old version and the new one are incompatible. You will need to delete/rename the previous database file so Flame can re-create it. You can then add your apps/bookmarks manually.
