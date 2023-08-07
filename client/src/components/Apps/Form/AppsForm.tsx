@@ -26,7 +26,7 @@ export const AppsForm = ({
   const { categories } = useSelector((state: State) => state.apps);
 
   const dispatch = useDispatch();
-  const { addApp, updateApp, setEditApp, createNotification } =
+  const { addApp, updateApp, createNotification } =
     bindActionCreators(actionCreators, dispatch);
 
   const [useCustomIcon, toggleUseCustomIcon] = useState<boolean>(false);
@@ -234,7 +234,7 @@ export const AppsForm = ({
           />
           <span>
             Use icon name from MDI or pass a valid URL.
-            <a href="https://materialdesignicons.com/" target="blank">
+            <a href="https://pictogrammers.com/library/mdi/" target="blank">
               {' '}
               Click here for reference
             </a>

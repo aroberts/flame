@@ -1,5 +1,5 @@
 import { useSelector } from 'react-redux';
-import { Link, NavLink, Route, Switch } from 'react-router-dom';
+import { Link, NavLink, Route, Routes } from 'react-router-dom';
 
 import { Route as SettingsRoute } from '../../interfaces';
 import { State } from '../../store/reducers';
@@ -8,7 +8,7 @@ import { Container, Headline } from '../UI';
 import { AppDetails } from './AppDetails/AppDetails';
 import { DockerSettings } from './DockerSettings/DockerSettings';
 import { GeneralSettings } from './GeneralSettings/GeneralSettings';
-import settings from './settings.json';
+import clientRoutes from './settings.json';
 import classes from './Settings.module.css';
 import { StyleSettings } from './StyleSettings/StyleSettings';
 import { Themer } from './Themer/Themer';
@@ -22,9 +22,11 @@ import { WeatherSettings } from './WeatherSettings/WeatherSettings';
 // UI
 // Data
 export const Settings = (): JSX.Element => {
+  const routes = clientRoutes.routes;
+
   const { isAuthenticated } = useSelector((state: State) => state.auth);
 
-  const tabs = isAuthenticated ? settings.routes : settings.routes.filter((r) => !r.authRequired);
+  const tabs = isAuthenticated ? routes : routes.filter((r) => !r.authRequired);
 
   return (
     <Container>
@@ -34,9 +36,13 @@ export const Settings = (): JSX.Element => {
         <nav className={classes.SettingsNav}>
           {tabs.map(({ name, dest }: SettingsRoute, idx) => (
             <NavLink
-              className={classes.SettingsNavLink}
-              activeClassName={classes.SettingsNavLinkActive}
-              exact
+              className={({ isActive }) => {
+                const linkClasses = [classes.SettingsNavLink];
+                if (isActive) linkClasses.push(classes.SettingsNavLinkActive);
+                
+                return linkClasses.join(" ");
+              }}
+              end
               to={dest}
               key={idx}
             >
@@ -47,9 +53,9 @@ export const Settings = (): JSX.Element => {
 
         {/* ROUTES */}
         <section className={classes.SettingsContent}>
-          <Switch>
-            <Route exact path="/settings" component={Themer} />
-          </Switch>
+          <Routes>
+            <Route path="" element={<Themer/>} />
+          </Routes>
         </section>
       </div>
     </Container>
